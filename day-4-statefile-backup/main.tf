@@ -1,8 +1,14 @@
 resource "aws_vpc" "vpc_create" {
   cidr_block = "10.0.0.0/24"
   tags = {
-    Name = "dev-vpc"
+    Name = "new-vpc"
   }
+}
+
+resource "aws_subnet" "name" {
+  vpc_id = "vpc-0ade92c9158f0e696"
+  cidr_block = "10.0.0.64/26"
+  tags = {  Name="custom-subnet"}
 }
 
 
