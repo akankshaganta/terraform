@@ -74,7 +74,111 @@ resource "aws_route_table_association" "public-internet-subnet-2" {
   subnet_id = aws_subnet.cust-public-subnet-2.id
 }
 
-#nat gateway
+# nat gateway
 resource "aws_nat_gateway" "custm-nat" {
-  
+  tags = {
+    Name = "cust-nat"
+  }
+  availability_mode = "regional"
+  vpc_id = aws_vpc.custom_vpc.id
+}
+
+# nat route table
+resource "aws_route_table" "custm-nat-rt" {
+  vpc_id = aws_vpc.custom_vpc.id
+  tags = {
+    Name = "custm-nat-rt"
+  }
+}
+
+# edit routes
+resource "aws_route" "secure-internet" {
+  route_table_id = aws_route_table.custm-nat-rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id = aws_nat_gateway.custm-nat.id
+}
+
+# route table - subnet associations
+resource "aws_route_table_association" "peivate-internet-subnet-1" {
+  route_table_id = aws_route_table.custm-nat-rt.id
+  subnet_id = aws_subnet.cust-private-subnet-1.id
+}
+resource "aws_route_table_association" "private-internet-subnet-2" {
+  route_table_id = aws_route_table.custm-nat-rt.id
+  subnet_id = aws_subnet.cust-private-subnet-2.id
+}
+
+# bashion sg
+resource "aws_security_group" "bashion-sg" {
+  name = "bashion-sg"
+  vpc_id = aws_vpc.custom_vpc.id
+  description = "allow"
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "bashion-sg"
+  }
+}
+
+# private-server sg
+resource "aws_security_group" "private-server-sg" {
+  name = "private-server-sg"
+  vpc_id = aws_vpc.custom_vpc.id
+  description = "allow"
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "private-server-sg"
+  }
+}
+
+resource "aws_instance" "bashion" {
+  tags = {
+    Name = "bashion"
+  }
+  ami = "ami-00e801948462f718a"
+  instance_type = "t3.micro"
+  subnet_id = aws_subnet.cust-public-subnet-1.id
+  vpc_security_group_ids =[aws_security_group.bashion-sg.id]
+  associate_public_ip_address = true
+  key_name = "key"
+}
+
+# private server
+resource "aws_instance" "private-server" {
+  tags = {
+    Name = "private-server"
+  }
+  ami = "ami-00e801948462f718a"
+  instance_type = "t3.micro"
+  subnet_id = aws_subnet.cust-private-subnet-1.id
+  vpc_security_group_ids =[aws_security_group.private-server-sg.id]
+  associate_public_ip_address = false
+  key_name = "key"
 }
