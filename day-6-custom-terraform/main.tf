@@ -24,7 +24,7 @@ resource "aws_subnet" "cust-private-subnet-1" {
 }
 
 resource "aws_subnet" "cust-public-subnet-2" {
-  vpc_id = "vpc-0fa9d92eb38a7de2d"
+  vpc_id = aws_vpc.custom_vpc.id
   cidr_block = "10.0.3.0/26"
   availability_zone = "us-east-1b"
   tags = {
@@ -33,7 +33,7 @@ resource "aws_subnet" "cust-public-subnet-2" {
 }
 
 resource "aws_subnet" "cust-private-subnet-2" {
-  vpc_id = "vpc-0fa9d92eb38a7de2d"
+  vpc_id = aws_vpc.custom_vpc.id
   cidr_block = "10.0.4.0/26"
   availability_zone = "us-east-1b"
   tags = {
