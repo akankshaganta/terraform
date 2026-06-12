@@ -123,7 +123,10 @@ resource "null_resource" "name" {
     }
     inline = [ 
       "touch /home/ec2-user/file200",
-      "echo 'hello from veera devops nareshit asdf' >> /home/ec2-user/file200"
+      "echo 'hello from veera devops nareshit asdf' > /home/ec2-user/file200"
+      # > -- content overwrite
+      # >> -- content add with existing
+      # > --read content similar to "cat file200" equivalent to "cat < file200"
      ]
     }
     triggers = {
@@ -143,3 +146,31 @@ resource "null_resource" "file" {
         destination = "/home/ec2-user/akanksha"
     }    
 }
+
+# to test script files
+resource "null_resource" "copy_script" {
+
+  triggers = {
+    script_hash = filesha256("setup.sh")
+  }
+
+  provisioner "file" {
+    source      = "setup.sh"
+    destination = "/tmp/setup.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/setup.sh",
+      "/tmp/setup.sh"
+    ]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ec2-user"
+    private_key = file("C:/Users/ayyap/.ssh/id_ed25519")
+    host        = aws_instance.public-server.public_ip
+  }
+}
+
